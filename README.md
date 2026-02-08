@@ -112,7 +112,7 @@ ls target/
 
 ---
 
-## Run the Application
+## Run the Application manually
 
 ```bash
 export DB_HOST=localhost
@@ -133,5 +133,12 @@ Check the table in PostgreSQL:
 ```bash
 sudo -u postgres psql -d springcrud
 \dt
+```
+## Run the application using docker compose
+
+```bash
+# Build the Docker image locally
+docker build -t java-springboot-app1:latest .
+docker compose up -d
 ```
 
