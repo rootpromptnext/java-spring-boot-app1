@@ -115,7 +115,14 @@ ls target/
 ## Run the Application
 
 ```bash
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=springcrud
+export DB_USER=springuser
+export DB_PASSWORD=Spring@123
+
 java -jar target/java-spring-boot-crud-0.0.1-SNAPSHOT.jar
+
 ```
 
 * The application will start on [http://localhost:8080](http://localhost:8080).
