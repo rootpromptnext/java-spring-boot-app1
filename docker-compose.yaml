@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: spring-postgres
+    environment:
+      POSTGRES_DB: springcrud
+      POSTGRES_USER: springuser
+      POSTGRES_PASSWORD: Spring@123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  java-springboot-app1:
+    image: java-springboot-app1:latest
+    container_name: user-service
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: springcrud
+      DB_USER: springuser
+      DB_PASSWORD: Spring@123
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:
+
+networks:
+  app-network:
