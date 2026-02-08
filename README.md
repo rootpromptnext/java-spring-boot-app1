@@ -107,7 +107,7 @@ Check the target directory:
 
 ```bash
 ls target/
-# You should see user-service-1.0.jar
+# You should see target/java-spring-boot-crud-0.0.1-SNAPSHOT.jar
 ```
 
 ---
@@ -115,7 +115,7 @@ ls target/
 ## Run the Application
 
 ```bash
-java -jar target/user-service-1.0.jar
+java -jar target/java-spring-boot-crud-0.0.1-SNAPSHOT.jar
 ```
 
 * The application will start on [http://localhost:8080](http://localhost:8080).
