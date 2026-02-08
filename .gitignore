@@ -1,0 +1,45 @@
+# Maven target directory
+/target/
+
+# Eclipse/IntelliJ/VSCode project files
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+*.out
+*.err
+
+# Temporary files
+*.tmp
+*.swp
+*.DS_Store
+*.class
+
+# Spring Boot specific
+spring-boot-*.jar
+spring-boot-*.war
+
+# PostgreSQL data (if any local storage)
+*.db
+*.sql
+*.backup
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment files
+.env
+
+# Generated directories
+/build/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Others
+.settings/
