@@ -4,7 +4,7 @@ This document explains how to set up and run the User Service Spring Boot CRUD a
 
 ---
 
-## 1. Prerequisites
+## Prerequisites
 
 - Ubuntu 22.04  
 - Internet connection  
@@ -98,7 +98,8 @@ spring.jpa.show-sql=true
 Navigate to project root and build:
 
 ```bash
-cd ~/user-service
+git clone https://github.com/rootpromptnext/java-spring-boot-app1
+cd ~/java-spring-boot-app1
 mvn clean package
 ```
 
@@ -127,7 +128,3 @@ sudo -u postgres psql -d springcrud
 \dt
 ```
 
-
-
-Do you want me to add that?
-```
