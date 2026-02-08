@@ -1,28 +1,60 @@
-User Service Spring Boot Application
+# User Service Spring Boot Application
+
 This document explains how to set up and run the User Service Spring Boot CRUD application with PostgreSQL on Ubuntu 22.04.
 
-1. Prerequisites
-Ubuntu 22.04
-Internet connection
-Sudo privileges
-2. Install Java 21 (JDK21)
+---
+
+## 1. Prerequisites
+
+- Ubuntu 22.04  
+- Internet connection  
+- Sudo privileges  
+
+---
+
+## Install Java 21 (JDK21)
+
+```bash
 sudo apt update
 sudo apt install -y openjdk-21-jdk
 java -version
 # should show: openjdk version "21.x.x"
-3. Install Maven
+````
+
+---
+
+## Install Maven
+
+```bash
 sudo apt install -y maven
 mvn -version
 # should show Maven 4.x or similar
-4. Install PostgreSQL
+```
+
+---
+
+## Install PostgreSQL
+
+```bash
 sudo apt install -y postgresql postgresql-contrib
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 sudo -u postgres psql -c "SELECT version();"
-5. Create Database and User
-# Login as postgres
-sudo -u postgres psql
+```
 
+---
+
+## Create Database and User
+
+Login as `postgres`:
+
+```bash
+sudo -u postgres psql
+```
+
+Create database and user:
+
+```sql
 -- Create database
 CREATE DATABASE springcrud;
 
@@ -41,30 +73,61 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO springuser;
 
 -- Exit PostgreSQL
 \q
-6. Configure Spring Boot Application
-In src/main/resources/application.properties:
+```
 
+---
+
+## Configure Spring Boot Application
+
+Edit `src/main/resources/application.properties`:
+
+```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/springcrud
 spring.datasource.username=springuser
 spring.datasource.password=Spring@123
 spring.jpa.hibernate.ddl-auto=create
 spring.jpa.show-sql=true
-Note: ddl-auto=create allows Hibernate to auto-create tables.
+```
 
-7. Build the Application
-# Navigate to project root
+> **Note:** `ddl-auto=create` allows Hibernate to auto-create tables.
+
+---
+
+## Build the Application
+
+Navigate to project root and build:
+
+```bash
 cd ~/user-service
-
-# Build using Maven
 mvn clean package
+```
 
-# Check target directory
+Check the target directory:
+
+```bash
 ls target/
 # You should see user-service-1.0.jar
-8. Run the Application
+```
+
+---
+
+## Run the Application
+
+```bash
 java -jar target/user-service-1.0.jar
-Application will start on http://localhost:8080.
-Hibernate will auto-create the users table in PostgreSQL.
-Check in PostgreSQL:
+```
+
+* The application will start on [http://localhost:8080](http://localhost:8080).
+* Hibernate will auto-create the `users` table in PostgreSQL.
+
+Check the table in PostgreSQL:
+
+```bash
 sudo -u postgres psql -d springcrud
 \dt
+```
+
+
+
+Do you want me to add that?
+```
