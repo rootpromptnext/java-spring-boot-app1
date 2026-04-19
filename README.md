@@ -142,3 +142,29 @@ docker build -t java-springboot-app1:latest .
 docker compose up -d
 ```
 
+## Connect database
+```bash
+prayag@devops-vm:~/java-spring-boot-app1$ docker exec -it spring-postgres psql -U springuser -d springcrud
+psql (16.13 (Debian 16.13-1.pgdg13+1))
+Type "help" for help.
+
+springcrud=# \du
+                              List of roles
+ Role name  |                         Attributes
+------------+------------------------------------------------------------
+ springuser | Superuser, Create role, Create DB, Replication, Bypass RLS
+
+springcrud=# \l
+                                                          List of databases
+    Name    |   Owner    | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |     Access privileges
+------------+------------+----------+-----------------+------------+------------+------------+-----------+---------------------------
+ postgres   | springuser | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ springcrud | springuser | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0  | springuser | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/springuser            +
+            |            |          |                 |            |            |            |           | springuser=CTc/springuser
+ template1  | springuser | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/springuser            +
+            |            |          |                 |            |            |            |           | springuser=CTc/springuser
+(4 rows)
+
+springcrud=#
+```
