@@ -121,7 +121,6 @@ pipeline {
             steps {
                 sh '''
                 microk8s kubectl apply -f k8s/deployment.yaml
-                microk8s kubectl apply -f k8s/service.yaml
                 '''
             }
         }
