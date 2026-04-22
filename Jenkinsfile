@@ -10,8 +10,9 @@ pipeline {
 
         FULL_IMAGE = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}"
 
+        SONAR_AUTH_TOKEN = credentials('sonar-token')
         SNYK_TOKEN = credentials('snyk-token')
-        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+        DOCKERHUB_CREDS = credentials('dockerhub-token')
     }
 
     stages {
@@ -39,6 +40,8 @@ pipeline {
                 withSonarQubeEnv('sonarqube-server') {
                     sh '''
                     docker run --rm \
+                      -e SONAR_HOST_URL=$SONAR_HOST_URL \
+                      -e SONAR_LOGIN=$SONAR_AUTH_TOKEN \
                       -v $PWD:/usr/src \
                       sonarsource/sonar-scanner-cli \
                       -Dsonar.projectKey=my-app \
