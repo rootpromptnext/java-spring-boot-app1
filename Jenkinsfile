@@ -121,7 +121,7 @@ pipeline {
         stage('Update deployment.yaml') {
             steps {
                 sh '''
-                sed -i 's|image:.*|image: '$FULL_IMAGE':'$BUILD_TAG'|g' k8s/deployment.yaml
+                sed -i 's|image:.*|image: '$FULL_IMAGE':'$BUILD_TAG'|g' deployment.yaml
                 '''
             }
         }
