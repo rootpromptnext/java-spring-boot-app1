@@ -31,20 +31,21 @@ pipeline {
             }
         }
 
-        stage('SAST - SonarQube (Docker)') {
+        stage('SAST - SonarCloud (Docker)') {
             steps {
-                withSonarQubeEnv('sonarqube-server') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
-                        sh '''
-                        docker run --rm \
-                          -e SONAR_HOST_URL=$SONAR_HOST_URL \
-                          -e SONAR_LOGIN=$TOKEN \
-                          -v $PWD:/usr/src \
-                          sonarsource/sonar-scanner-cli \
-                          -Dsonar.projectKey=my-app \
-                          -Dsonar.sources=.
-                        '''
-                    }
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
+                    sh '''
+                    docker run --rm \
+                      -e SONAR_HOST_URL=https://sonarcloud.io \
+                      -e SONAR_LOGIN=$TOKEN \
+                      -v $WORKSPACE:/usr/src \
+                      sonarsource/sonar-scanner-cli \
+                      -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
+                      -Dsonar.organization=rootpromptnext \
+                      -Dsonar.sources=. \
+                      -Dsonar.java.binaries=target \
+                      -X
+                    '''
                 }
             }
         }
