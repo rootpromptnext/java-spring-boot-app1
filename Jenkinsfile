@@ -9,10 +9,6 @@ pipeline {
         LATEST_TAG = "latest"
 
         FULL_IMAGE = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}"
-
-        SONAR_AUTH_TOKEN = credentials('sonar-token')
-        SNYK_TOKEN = credentials('snyk-token')
-        DOCKERHUB_CREDS = credentials('dockerhub-token')
     }
 
     stages {
@@ -38,29 +34,33 @@ pipeline {
         stage('SAST - SonarQube (Docker)') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
-                    sh '''
-                    docker run --rm \
-                      -e SONAR_HOST_URL=$SONAR_HOST_URL \
-                      -e SONAR_LOGIN=$SONAR_AUTH_TOKEN \
-                      -v $PWD:/usr/src \
-                      sonarsource/sonar-scanner-cli \
-                      -Dsonar.projectKey=my-app \
-                      -Dsonar.sources=.
-                    '''
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
+                        sh '''
+                        docker run --rm \
+                          -e SONAR_HOST_URL=$SONAR_HOST_URL \
+                          -e SONAR_LOGIN=$TOKEN \
+                          -v $PWD:/usr/src \
+                          sonarsource/sonar-scanner-cli \
+                          -Dsonar.projectKey=my-app \
+                          -Dsonar.sources=.
+                        '''
+                    }
                 }
             }
         }
 
         stage('SCA - Snyk (Docker)') {
             steps {
-                sh '''
-                docker run --rm \
-                  -e SNYK_TOKEN=$SNYK_TOKEN \
-                  -v $PWD:/app \
-                  -w /app \
-                  snyk/snyk:docker \
-                  snyk test || true
-                '''
+                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+                    sh '''
+                    docker run --rm \
+                      -e SNYK_TOKEN=$SNYK_TOKEN \
+                      -v $PWD:/app \
+                      -w /app \
+                      snyk/snyk:docker \
+                      snyk test || true
+                    '''
+                }
             }
         }
 
@@ -97,9 +97,15 @@ pipeline {
 
         stage('Login to Docker Hub') {
             steps {
-                sh '''
-                echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-token',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    '''
+                }
             }
         }
 
