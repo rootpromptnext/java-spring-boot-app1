@@ -60,8 +60,15 @@ pipeline {
                       -e SNYK_TOKEN=$SNYK_TOKEN \
                       -v $PWD:/app \
                       -w /app \
-                      snyk/snyk:docker \
-                      snyk monitor || true
+                      snyk/snyk:latest \
+                      snyk test --file=pom.xml --json > snyk-report.json || true
+        
+                    docker run --rm \
+                      -e SNYK_TOKEN=$SNYK_TOKEN \
+                      -v $PWD:/app \
+                      -w /app \
+                      snyk/snyk:latest \
+                      snyk monitor --file=pom.xml -d
                     '''
                 }
             }
