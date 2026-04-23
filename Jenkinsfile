@@ -36,14 +36,13 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
                     sh '''
                     docker run --rm \
-                      -e SONAR_HOST_URL=https://sonarcloud.io \
-                      -e SONAR_LOGIN=$TOKEN \
                       -v $PWD:/usr/src \
                       -w /usr/src \
                       sonarsource/sonar-scanner-cli \
                       -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
                       -Dsonar.organization=rootpromptnext \
-                      -Dsonar.projectName=java-spring-boot-app1 \
+                      -Dsonar.host.url=https://sonarcloud.io \
+                      -Dsonar.login=$TOKEN \
                       -Dsonar.sources=src \
                       -Dsonar.java.binaries=target \
                       -Dsonar.projectBaseDir=/usr/src \
