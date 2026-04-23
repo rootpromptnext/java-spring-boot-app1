@@ -19,38 +19,38 @@ pipeline {
             }
         }
 
-        stage('Build Maven App (Docker)') {
-            steps {
-                sh '''
-                docker run --rm \
-                  -v $PWD:/app \
-                  -w /app \
-                  maven:3.9.9-eclipse-temurin-17 \
-                  mvn clean package -DskipTests
-                '''
-            }
-        }
+        #stage('Build Maven App (Docker)') {
+        #    steps {
+        #        sh '''
+        #        docker run --rm \
+        #          -v $PWD:/app \
+        #          -w /app \
+        #          maven:3.9.9-eclipse-temurin-17 \
+        #          mvn clean package -DskipTests
+        #        '''
+        #    }
+        #}
 
-        stage('SAST - SonarCloud (Docker)') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
-                    sh '''
-                    docker run --rm \
-                      -v $PWD:/usr/src \
-                      -w /usr/src \
-                      sonarsource/sonar-scanner-cli \
-                      -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
-                      -Dsonar.organization=rootpromptnext \
-                      -Dsonar.host.url=https://sonarcloud.io \
-                      -Dsonar.login=$TOKEN \
-                      -Dsonar.sources=src \
-                      -Dsonar.java.binaries=target \
-                      -Dsonar.projectBaseDir=/usr/src \
-                      -X
-                    '''
-                }
-            }
-        }
+        #stage('SAST - SonarCloud (Docker)') {
+        #    steps {
+        #        withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
+        #            sh '''
+        #            docker run --rm \
+        #              -v $PWD:/usr/src \
+        #              -w /usr/src \
+        #              sonarsource/sonar-scanner-cli \
+        #              -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
+        #              -Dsonar.organization=rootpromptnext \
+        #              -Dsonar.host.url=https://sonarcloud.io \
+        #              -Dsonar.login=$TOKEN \
+        #              -Dsonar.sources=src \
+        #              -Dsonar.java.binaries=target \
+        #              -Dsonar.projectBaseDir=/usr/src \
+        #              -X
+        #            '''
+        #        }
+        #    }
+        #}
 
         stage('SCA - Snyk (Docker)') {
             steps {
@@ -85,67 +85,67 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                docker build -t $FULL_IMAGE:$BUILD_TAG .
-                docker tag $FULL_IMAGE:$BUILD_TAG $FULL_IMAGE:$LATEST_TAG
-                '''
-            }
-        }
+        #stage('Build Docker Image') {
+        #    steps {
+        #        sh '''
+        #        docker build -t $FULL_IMAGE:$BUILD_TAG .
+        #        docker tag $FULL_IMAGE:$BUILD_TAG $FULL_IMAGE:$LATEST_TAG
+        #        '''
+        #    }
+        #}
 
-        stage('Trivy Scan (Docker)') {
-            steps {
-                sh '''
-                docker run --rm \
-                  -v /var/run/docker.sock:/var/run/docker.sock \
-                  aquasec/trivy:latest \
-                  image $FULL_IMAGE:$BUILD_TAG || true
-                '''
-            }
-        }
+        #stage('Trivy Scan (Docker)') {
+        #    steps {
+        #        sh '''
+        #        docker run --rm \
+        #          -v /var/run/docker.sock:/var/run/docker.sock \
+        #          aquasec/trivy:latest \
+        #          image $FULL_IMAGE:$BUILD_TAG || true
+        #        '''
+        #    }
+        #}
 
-        stage('Login to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-token',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    '''
-                }
-            }
-        }
+        #stage('Login to Docker Hub') {
+        #    steps {
+        #        withCredentials([usernamePassword(
+        #            credentialsId: 'dockerhub-token',
+        #            usernameVariable: 'DOCKER_USER',
+        #            passwordVariable: 'DOCKER_PASS'
+        #        )]) {
+        #            sh '''
+        #            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+        #            '''
+        #        }
+        #    }
+        #}
 
-        stage('Push to Docker Hub') {
-            steps {
-                sh '''
-                docker push $FULL_IMAGE:$BUILD_TAG
-                docker push $FULL_IMAGE:$LATEST_TAG
-                '''
-            }
-        }
+        #stage('Push to Docker Hub') {
+        #    steps {
+        #        sh '''
+        #        docker push $FULL_IMAGE:$BUILD_TAG
+        #        docker push $FULL_IMAGE:$LATEST_TAG
+        #        '''
+        #    }
+        #}
 
-        stage('Update deployment.yaml') {
-            steps {
-                sh '''
-                sed -i 's|image:.*|image: '$FULL_IMAGE':'$BUILD_TAG'|g' deployment.yaml
-                '''
-            }
-        }
+        #stage('Update deployment.yaml') {
+        #    steps {
+        #        sh '''
+        #        sed -i 's|image:.*|image: '$FULL_IMAGE':'$BUILD_TAG'|g' deployment.yaml
+        #        '''
+        #    }
+        #}
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh '''
-                    export KUBECONFIG=$KUBECONFIG
-                    kubectl apply -f deployment.yaml
-                    '''
-                }
-            }
-        }
+        #stage('Deploy to Kubernetes') {
+        #    steps {
+        #        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+        #            sh '''
+        #            export KUBECONFIG=$KUBECONFIG
+        #            kubectl apply -f deployment.yaml
+        #            '''
+        #        }
+        #    }
+        #}
 
         stage('DAST - OWASP ZAP (Docker)') {
             steps {
