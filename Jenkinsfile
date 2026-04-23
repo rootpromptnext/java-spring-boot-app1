@@ -144,7 +144,7 @@ pipeline {
             steps {
                 sh '''
                 docker run --rm \
-                  -t owasp/zap2docker-stable \
+                  -t ghcr.io/zaproxy/zaproxy:stable \
                   zap-baseline.py \
                   -t http://example.com || true
                 '''
