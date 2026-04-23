@@ -19,7 +19,7 @@ pipeline {
             }
         }
 
-        #stage('Build Maven App (Docker)') {
+        # stage('Build Maven App (Docker)') {
         #    steps {
         #        sh '''
         #        docker run --rm \
@@ -31,7 +31,7 @@ pipeline {
         #    }
         #}
 
-        #stage('SAST - SonarCloud (Docker)') {
+        # stage('SAST - SonarCloud (Docker)') {
         #    steps {
         #        withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
         #            sh '''
