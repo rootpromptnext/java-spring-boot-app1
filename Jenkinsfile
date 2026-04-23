@@ -143,28 +143,60 @@ pipeline {
         stage('DAST - OWASP ZAP (Docker)') {
             steps {
                 sh '''
+                mkdir -p zap-reports
+        
                 docker run --rm \
+                  -v $PWD/zap-reports:/zap/wrk \
                   -t ghcr.io/zaproxy/zaproxy:stable \
                   zap-baseline.py \
-                  -t https://learning.rootpromtnext.com || true
+                  -t http://learning.rootpromptnext.com \
+                  -r zap-report.html || true
                 '''
             }
         }
     }
 
-    post {
-        failure {
-            emailext(
-                subject: "Pipeline Failed: ${JOB_NAME} #${BUILD_NUMBER}",
-                body: """
-                Build failed.
-
-                Job: ${JOB_NAME}
-                Build: ${BUILD_NUMBER}
-                URL: ${BUILD_URL}
-                """,
-                to: "prayag.rhce@gmail.com"
-            )
-        }
-    }
+        post {
+            always {
+                // Archive all reports
+                archiveArtifacts artifacts: 'zap-reports/*.*, snyk-report.json', allowEmptyArchive: true
+            }
+        
+            success {
+                emailext(
+                    subject: "Pipeline Success: ${JOB_NAME} #${BUILD_NUMBER}",
+                    body: """
+                    <h2>Build Successful</h2>
+        
+                    <p><b>Job:</b> ${JOB_NAME}</p>
+                    <p><b>Build:</b> #${BUILD_NUMBER}</p>
+        
+                    <p><a href="${BUILD_URL}">View Build</a></p>
+                    """,
+                    mimeType: 'text/html',
+                    to: "prayag.rhce@gmail.com"
+                )
+            }
+        
+            failure {
+                emailext(
+                    subject: "Pipeline Failed: ${JOB_NAME} #${BUILD_NUMBER}",
+                    body: """
+                    <h2>Build Failed </h2>
+        
+                    <p><b>Job:</b> ${JOB_NAME}</p>
+                    <p><b>Build:</b> #${BUILD_NUMBER}</p>
+        
+                    <p><b>Console:</b><br>
+                    <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
+        
+                    <p><b>Artifacts:</b><br>
+                    <a href="${BUILD_URL}artifact/">${BUILD_URL}artifact/</a></p>
+                    """,
+                    mimeType: 'text/html',
+                    attachmentsPattern: 'zap-reports/*.html',
+                    to: "prayag.rhce@gmail.com"
+                )
+            }
+       }
 }
