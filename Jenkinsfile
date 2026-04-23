@@ -61,7 +61,7 @@ pipeline {
                       -v $PWD:/app \
                       -w /app \
                       snyk/snyk:docker \
-                      snyk test || true
+                      snyk monitor || true
                     '''
                 }
             }
