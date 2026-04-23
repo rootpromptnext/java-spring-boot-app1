@@ -146,7 +146,7 @@ pipeline {
                 docker run --rm \
                   -t ghcr.io/zaproxy/zaproxy:stable \
                   zap-baseline.py \
-                  -t http://example.com || true
+                  -t https://learning.rootpromtnext.com || true
                 '''
             }
         }
