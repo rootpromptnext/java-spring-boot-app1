@@ -27,31 +27,7 @@ pipeline {
             }
         }
 
-        // =========================
-        // SAST - SonarCloud (OPTIONAL)
-        // =========================
-        stage('SAST - SonarCloud') {
-            when {
-                expression { return false } // 🔴 set true to enable
-            }
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
-                    sh '''
-                    docker run --rm \
-                      -v $PWD:/usr/src \
-                      -w /usr/src \
-                      sonarsource/sonar-scanner-cli \
-                      -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
-                      -Dsonar.organization=rootpromptnext \
-                      -Dsonar.host.url=https://sonarcloud.io \
-                      -Dsonar.login=$TOKEN \
-                      -Dsonar.sources=src \
-                      -Dsonar.java.binaries=target \
-                      -Dsonar.projectBaseDir=/usr/src
-                    '''
-                }
-            }
-        }
+       
 
         // =========================
         // SCA - Snyk
@@ -94,48 +70,7 @@ pipeline {
                   filesystem /repo || true
                 '''
             }
-        }
-
-        // =========================
-        // Trivy FS Scan
-        // =========================
-        stage('Vulnerability Scan - Trivy FS') {
-            steps {
-                sh '''
-                mkdir -p trivy-reports
-
-                docker run --rm \
-                  -v $PWD:/project \
-                  -v $HOME/.trivy-cache:/root/.cache/ \
-                  -w /project \
-                  aquasec/trivy:latest \
-                  fs . \
-                  --severity HIGH,CRITICAL \
-                  --format json \
-                  --output trivy-reports/trivy-report.json || true
-                '''
-            }
-        }
-
-        // =========================
-        // DAST - OWASP ZAP
-        // =========================
-        stage('DAST - OWASP ZAP') {
-            steps {
-                sh '''
-                mkdir -p zap-reports
-                chmod -R 777 zap-reports
-
-                docker run --rm \
-                  -u $(id -u):$(id -g) \
-                  -v $PWD/zap-reports:/zap/wrk \
-                  -t ghcr.io/zaproxy/zaproxy:stable \
-                  zap-baseline.py \
-                  -t http://learning.rootpromptnext.com \
-                  -r zap-report.html || true
-                '''
-            }
-        }
+        }        
     }
 
     // =========================
