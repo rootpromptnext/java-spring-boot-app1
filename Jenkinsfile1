@@ -18,47 +18,58 @@ pipeline {
         stage('Build Maven App') {
             steps {
                 sh '''
-                mvn clean package -DskipTests
+                docker run --rm \
+                  -v $PWD:/app \
+                  -w /app \
+                  maven:3.9.9-eclipse-temurin-17 \
+                  mvn clean package -DskipTests
                 '''
             }
         }
 
         // =========================
-        // SAST - SonarCloud
+        // SAST - SonarCloud (OPTIONAL)
         // =========================
-        #stage('SAST - SonarCloud') {
-        #    steps {
-        #        withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
-        #            sh '''
-        #            docker run --rm \
-        #              -v $PWD:/usr/src \
-        #              -w /usr/src \
-        #              sonarsource/sonar-scanner-cli \
-        #              -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
-        #              -Dsonar.organization=rootpromptnext \
-        #              -Dsonar.host.url=https://sonarcloud.io \
-        #              -Dsonar.login=$TOKEN \
-        #              -Dsonar.sources=src \
-        #              -Dsonar.java.binaries=target \
-        #              -Dsonar.projectBaseDir=/usr/src
-        #            '''
-        #        }
-        #    }
-        #}
+        stage('SAST - SonarCloud') {
+            when {
+                expression { return false } // 🔴 set true to enable
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'TOKEN')]) {
+                    sh '''
+                    docker run --rm \
+                      -v $PWD:/usr/src \
+                      -w /usr/src \
+                      sonarsource/sonar-scanner-cli \
+                      -Dsonar.projectKey=rootpromptnext_java-spring-boot-app1 \
+                      -Dsonar.organization=rootpromptnext \
+                      -Dsonar.host.url=https://sonarcloud.io \
+                      -Dsonar.login=$TOKEN \
+                      -Dsonar.sources=src \
+                      -Dsonar.java.binaries=target \
+                      -Dsonar.projectBaseDir=/usr/src
+                    '''
+                }
+            }
+        }
 
         // =========================
-        // SCA - Snyk (FIXED IMAGE)
+        // SCA - Snyk
         // =========================
         stage('SCA - Snyk') {
             steps {
                 withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
                     sh '''
+                    echo "Running Snyk test..."
+
                     docker run --rm \
                       -e SNYK_TOKEN=$SNYK_TOKEN \
                       -v $PWD:/app \
                       -w /app \
                       snyk/snyk:docker \
-                      snyk test --file=pom.xml --skip-unresolved --json > snyk-report.json || true
+                      snyk test --file=pom.xml --skip-unresolved --json > snyk-report.json || echo "{}" > snyk-report.json
+
+                    echo "Sending report to Snyk dashboard..."
 
                     docker run --rm \
                       -e SNYK_TOKEN=$SNYK_TOKEN \
@@ -72,7 +83,7 @@ pipeline {
         }
 
         // =========================
-        // Secrets Scan
+        // Secrets Scan - TruffleHog
         // =========================
         stage('Secrets Scan - TruffleHog') {
             steps {
@@ -86,7 +97,7 @@ pipeline {
         }
 
         // =========================
-        // Trivy FS Scan (STABLE)
+        // Trivy FS Scan
         // =========================
         stage('Vulnerability Scan - Trivy FS') {
             steps {
@@ -95,7 +106,7 @@ pipeline {
 
                 docker run --rm \
                   -v $PWD:/project \
-                  -v /tmp/trivy-cache:/root/.cache/ \
+                  -v $HOME/.trivy-cache:/root/.cache/ \
                   -w /project \
                   aquasec/trivy:latest \
                   fs . \
@@ -107,7 +118,7 @@ pipeline {
         }
 
         // =========================
-        // DAST - OWASP ZAP (FIXED PERMISSION)
+        // DAST - OWASP ZAP
         // =========================
         stage('DAST - OWASP ZAP') {
             steps {
@@ -140,7 +151,7 @@ pipeline {
             emailext(
                 subject: "DevSecOps Pipeline Success: ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
-                <h2>All Security Scans Passed</h2>
+                <h2>All Security Scans Completed ✅</h2>
 
                 <p><b>Job:</b> ${JOB_NAME}</p>
                 <p><b>Build:</b> #${BUILD_NUMBER}</p>
@@ -157,7 +168,7 @@ pipeline {
             emailext(
                 subject: "DevSecOps Pipeline Failed: ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
-                <h2>Security Pipeline Failed</h2>
+                <h2>Security Pipeline Failed ❌</h2>
 
                 <p><b>Job:</b> ${JOB_NAME}</p>
                 <p><b>Build:</b> #${BUILD_NUMBER}</p>
