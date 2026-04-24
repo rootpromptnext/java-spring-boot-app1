@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        SONAR_TOKEN = credentials('sonar-token') // Jenkins credential ID
+        SONAR_TOKEN = credentials('sonar-token')
+        SNYK_TOKEN  = credentials('snyk-token')
     }
 
     stages {
@@ -19,37 +20,38 @@ pipeline {
             }
         }
 
-        stage('Trivy FS Scan (Source Code)') {
+        stage('Snyk Test (SCA)') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -e SNYK_TOKEN=$SNYK_TOKEN \
+                  -v "$PWD":/project \
+                  -w /project \
+                  snyk/snyk:maven \
+                  snyk test --severity-threshold=high || true
+                '''
+            }
+        }
+
+        stage('Trivy FS Scan') {
             steps {
                 sh '''
                 docker run --rm \
                   -v "$PWD":/project \
                   -w /project \
-                  aquasec/trivy:latest fs . 
+                  aquasec/trivy:latest fs \
+                  --severity HIGH,CRITICAL \
+                  --format json \
+                  -o trivy-report.json \
+                  . || true
                 '''
             }
         }
 
-        stage('Snyk Monitor (Docker)') {
-            steps {
-                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
-                    sh '''
-                    docker run --rm \
-                      -e SNYK_TOKEN=$SNYK_TOKEN \
-                      -v "$PWD":/project \
-                      -w /project \
-                      snyk/snyk:maven \
-                      snyk monitor
-                    '''
-                }
-            }
-        }
-
-        stage('SonarCloud Analysis (Docker)') {
+        stage('SonarCloud Analysis') {
             steps {
                 sh '''
                 docker run --rm \
-                  -e SONAR_LOGIN=$SONAR_TOKEN \
                   -v "$PWD":/usr/src \
                   -w /usr/src \
                   sonarsource/sonar-scanner-cli:5.0.1 \
@@ -64,6 +66,15 @@ pipeline {
             }
         }
 
+        stage('Run Application') {
+            steps {
+                sh '''
+                nohup java -jar target/*.jar > app.log 2>&1 &
+                sleep 20
+                '''
+            }
+        }
+
         stage('DAST - OWASP ZAP Scan') {
             steps {
                 sh '''
@@ -71,16 +82,29 @@ pipeline {
                   -v "$PWD":/zap/wrk \
                   ghcr.io/zaproxy/zaproxy:stable \
                   zap.sh -cmd \
-                  -quickurl http://your-app:8080 \
+                  -quickurl http://localhost:8080 \
                   -quickout /zap/wrk/zap-report.html
                 '''
             }
         }
 
-post {
-    always {
-        archiveArtifacts artifacts: 'zap-report.html', fingerprint: true
+        stage('Snyk Monitor') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -e SNYK_TOKEN=$SNYK_TOKEN \
+                  -v "$PWD":/project \
+                  -w /project \
+                  snyk/snyk:maven \
+                  snyk monitor --project-name=java-springboot-app
+                '''
+            }
+        }
     }
-}
+
+    post {
+        always {
+            archiveArtifacts artifacts: '*.html, *.json, app.log', fingerprint: true
+        }
     }
 }
