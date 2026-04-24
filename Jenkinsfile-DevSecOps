@@ -19,6 +19,21 @@ pipeline {
             }
         }
 
+        stage('Snyk Monitor (Docker)') {
+            steps {
+                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+                    sh '''
+                    docker run --rm \
+                      -e SNYK_TOKEN=$SNYK_TOKEN \
+                      -v "$PWD":/project \
+                      -w /project \
+                      snyk/snyk:maven \
+                      snyk monitor
+                    '''
+                }
+            }
+        }
+
         stage('SonarCloud Analysis (Docker)') {
             steps {
                 sh '''
