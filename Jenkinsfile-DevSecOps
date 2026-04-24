@@ -19,6 +19,17 @@ pipeline {
             }
         }
 
+        stage('Trivy FS Scan (Source Code)') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -v "$PWD":/project \
+                  -w /project \
+                  aquasec/trivy:latest fs . 
+                '''
+            }
+        }
+
         stage('Snyk Monitor (Docker)') {
             steps {
                 withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
