@@ -73,7 +73,7 @@ pipeline {
                   -v "$PWD":/zap/wrk \
                   ghcr.io/zaproxy/zaproxy:stable \
                   zap.sh -cmd \
-                  -quickurl http://localhost:8080 \
+                  -quickurl https://example.com \
                   -quickout /zap/wrk/zap-report.html
                 '''
             }
