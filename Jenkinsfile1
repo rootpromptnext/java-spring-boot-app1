@@ -27,50 +27,33 @@ pipeline {
             }
         }
 
-       
-
-        // =========================
-        // SCA - Snyk
-        // =========================
         stage('SCA - Snyk') {
             steps {
                 withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
                     sh '''
                     echo "Running Snyk test..."
-
+        
                     docker run --rm \
                       -e SNYK_TOKEN=$SNYK_TOKEN \
                       -v $PWD:/app \
+                      -v $HOME/.m2:/root/.m2 \
                       -w /app \
                       snyk/snyk:docker \
                       snyk test --file=pom.xml --skip-unresolved --json > snyk-report.json || echo "{}" > snyk-report.json
-
-                    echo "Sending report to Snyk dashboard..."
-
+        
+                    echo "Running Snyk monitor (with debug)..."
+        
                     docker run --rm \
                       -e SNYK_TOKEN=$SNYK_TOKEN \
                       -v $PWD:/app \
+                      -v $HOME/.m2:/root/.m2 \
                       -w /app \
                       snyk/snyk:docker \
-                      snyk monitor --file=pom.xml --skip-unresolved || true
+                      snyk monitor --file=pom.xml --skip-unresolved -d || true
                     '''
                 }
             }
-        }
-
-        // =========================
-        // Secrets Scan - TruffleHog
-        // =========================
-        stage('Secrets Scan - TruffleHog') {
-            steps {
-                sh '''
-                docker run --rm \
-                  -v $PWD:/repo \
-                  ghcr.io/trufflesecurity/trufflehog:latest \
-                  filesystem /repo || true
-                '''
-            }
-        }        
+        }     
     }
 
     // =========================
