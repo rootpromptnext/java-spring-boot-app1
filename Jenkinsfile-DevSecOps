@@ -63,5 +63,24 @@ pipeline {
                 '''
             }
         }
+
+        stage('DAST - OWASP ZAP Scan') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -v "$PWD":/zap/wrk \
+                  ghcr.io/zaproxy/zaproxy:stable \
+                  zap.sh -cmd \
+                  -quickurl http://your-app:8080 \
+                  -quickout /zap/wrk/zap-report.html
+                '''
+            }
+        }
+
+post {
+    always {
+        archiveArtifacts artifacts: 'zap-report.html', fingerprint: true
+    }
+}
     }
 }
