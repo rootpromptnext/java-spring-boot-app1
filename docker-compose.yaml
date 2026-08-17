@@ -16,7 +16,7 @@ services:
       - app-network
 
   java-springboot-app1:
-    image: java-springboot-app1:latest
+    image: java-springboot-app1:local-v1
     container_name: user-service
     depends_on:
       - postgres
